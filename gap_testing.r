@@ -2,6 +2,8 @@ library(tidyverse)
 library(purrr)
 library(data.table)
 library(hms)
+library(visdat)
+library(rlist)
 setwd("./Data")
 
 Chautauqua <- read.csv("./Chautauqua_20220317.csv")
@@ -30,13 +32,57 @@ write.csv(Chautauqua_counts, "./Chautauqua_counts.csv")
 View(Chautauqua_counts)
 
 #Chad testing
+Chad_1 <- read.csv("./Chad_20210428.csv")
+Chad_2 <- read.csv("./Chad_20210503.csv")
+Chad_3 <- read.csv("./Chad_20210506.csv")
+Chad_4 <- read.csv("./Chad_20210511.csv")
+Chad_5 <- read.csv("./Chad_20210519.csv")
+Chad_6 <- read.csv("./Chad_20210529.csv")
+Chad_7 <- read.csv("./Chad_20210604.csv")
+Chad_8 <- read.csv("./Chad_20210610.csv")
+Chad_9 <- read.csv("./Chad_20210621.csv")
+Chad_10 <- read.csv("./Chad_20210628.csv")
+Chad_11 <- read.csv("./Chad_20210629.csv")
+Chad_12 <- read.csv("./Chad_20211001.csv")
+Chad_13 <- read.csv("./Chad_20211007.csv")
+Chad_14 <- read.csv("./Chad_20211018.csv")
+Chad_15 <- read.csv("./Chad_20211027.csv")
+Chad_16 <- read.csv("./Chad_20211110.csv")
+Chad_17 <- read.csv("./Chad_20211216.csv")
+#### 2022
+Chad_18 <- read.csv("./Chad_20220303.csv")
+Chad_19 <- read.csv("./Chad_20220426.csv")
+Chad_20 <- read.csv("./Chad_20220510.csv")
+Chad_21 <- read.csv("./Chad_20220517.csv")
+Chad_22 <- read.csv("./Chad_20220526.csv")
+Chad_23 <- read.csv("./Chad_20220609.csv")
+Chad_24 <- read.csv("./Chad_20220805.csv")
+#### 2023
+Chad_25 <- read.csv("./Chad_20230220.csv")
+Chad_26 <- read.csv("./Chad_20230414_revised.csv")
+Chad_26 = subset(Chad_26, select = -c(X, X.1,X.2, X.3, X.4))
+Chad_27 <- read.csv("./Chad_20230503_revised.csv")
+Chad_27 = subset(Chad_27, select = -c(X, X.1,X.2, X.3, X.4))
+Chad_28 <- read.csv("./Chad_20230512_revised.csv")
+Chad_29 <- read.csv("./Chad_20230609_revised.csv")
+Chad_30 <- read.csv("./Chad_20230821.csv")
+
+Chad <-rbind(Chad_1,Chad_2,Chad_3,Chad_4,Chad_5,Chad_6,Chad_7,Chad_8,Chad_9,Chad_10,Chad_11,Chad_12,Chad_13,Chad_14,Chad_15,Chad_16,Chad_17,Chad_18,Chad_19,Chad_20,Chad_21,Chad_22,Chad_23,Chad_24,Chad_25,Chad_26,Chad_27,Chad_28,Chad_29)
+
+mdy <- mdy(Chad$Date) 
+ymd <- ymd(Chad$Date) 
+mdy[is.na(mdy)] <- ymd[is.na(mdy)] # some dates are ambiguous, here we give 
+Chad$Date <- mdy        # mdy precedence over dmy
+
 #Set Working Directory to folder with all of the MOTUS tower data you want to work with.
 setwd("./Chad")
 #Create and object that lists all file names
 files <- list.files()
 names(files) = files
 #read in all CSV files with the names in the corresponding object
-csvs <- lapply(files, read_csv)
+csvs <- lapply(files, function(f) {
+  read_csv(f, col_types = cols(Date = col_character()))
+})
 
 #create column with original filename
 csvs <- lapply(names(csvs), function(name){
@@ -52,31 +98,36 @@ cleaned_csvs <- map(csvs, ~ .x %>% select(-starts_with(columns_to_remove))) #rem
 newcolnames <- c("filename","Date","Time","RXID","Freq","Antenna","Protocol","Code","Power","Squelch", "Noise Level","Pulse Width 1","Pulse Width 2","Pulse Width 3","Pulse Width 4","Pulse Interval 1", "Pulse Interval 2","Pulse Interval 3")
 cleaned_csvs <- lapply(cleaned_csvs, setNames, nm = newcolnames)
 
-list2env(cleaned_csvs, envir = .GlobalEnv) #Add all of the tibbles in the list to the R environment as separate data frames
+target_class <- class(csvs[[2]]$Antenna)
 
+# Coerce the 'Date' column in all tibbles to that class
+cleaned_csvs <- lapply(cleaned_csvs, function(df) {
+  if (!inherits(df$Antenna, target_class)) {
+    # Use as.<class>() to convert, assuming the base type is compatible
+    df$Antenna <- switch(target_class[1],
+                      character = as.character(df$Antenna),
+                      df$Antenna)  # Default: no change
+  }
+  df
+})
 
-Chad_20230512_revised.csv_test <- Chad_20230512_revised.csv %>% 
-  mutate(Time = as_hms(Time))
+Chad <- bind_rows(cleaned_csvs) #Create one df with all of the data
 
-Chad <- rbind(Chad_20210428.csv,Chad_20210503.csv,Chad_20210506.csv
-,Chad_20210511.csv, Chad_20210519.csv,Chad_20210529.csv,Chad_20210604.csv,Chad_20210610.csv,
-Chad_20210621.csv,Chad_20210628.csv,Chad_20210629.csv,Chad_20211001.csv,Chad_20211007.csv,Chad_20211018.csv,
-Chad_20211027.csv,Chad_20211110.csv,Chad_20211216.csv,Chad_20220303.csv,Chad_20220426.csv,Chad_20220510.csv,
-Chad_20220517.csv,Chad_20220526.csv,Chad_20220609.csv,Chad_20220805.csv,Chad_20230220.csv,Chad_20230414_revised.csv,
-Chad_20230503_revised.csv,Chad_20230512_revised.csv,Chad_20230609_revised.csv,Chad_20230821.csv
-)
+Chad %>% 
+  slice_sample(prop = .006) %>% 
+  vis_dat()
 
-mdy <- mdy(Chad$Date) 
+mdy <- mdy(Chad$Date)
 ymd <- ymd(Chad$Date) 
 mdy[is.na(mdy)] <- ymd[is.na(mdy)] # some dates are ambiguous, here we give 
 Chad$Date <- mdy        # mdy precedence over dmy
 
 Chad_errors <- Chad %>% 
-  subset(year(Date) == 2001)
+  subset(year(Date) == 2001) #subset the dataset to only include data from 2001, representing errors
 
-unique(Chad_errors$file_name)
+unique(Chad_errors$filename)
 Chad_errors %>% 
-  group_by(file_name) %>% 
+  group_by(filename) %>% 
   count()
   
 
