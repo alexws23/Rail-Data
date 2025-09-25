@@ -32,48 +32,6 @@ write.csv(Chautauqua_counts, "./Chautauqua_counts.csv")
 View(Chautauqua_counts)
 
 #Chad testing
-Chad_1 <- read.csv("./Chad_20210428.csv")
-Chad_2 <- read.csv("./Chad_20210503.csv")
-Chad_3 <- read.csv("./Chad_20210506.csv")
-Chad_4 <- read.csv("./Chad_20210511.csv")
-Chad_5 <- read.csv("./Chad_20210519.csv")
-Chad_6 <- read.csv("./Chad_20210529.csv")
-Chad_7 <- read.csv("./Chad_20210604.csv")
-Chad_8 <- read.csv("./Chad_20210610.csv")
-Chad_9 <- read.csv("./Chad_20210621.csv")
-Chad_10 <- read.csv("./Chad_20210628.csv")
-Chad_11 <- read.csv("./Chad_20210629.csv")
-Chad_12 <- read.csv("./Chad_20211001.csv")
-Chad_13 <- read.csv("./Chad_20211007.csv")
-Chad_14 <- read.csv("./Chad_20211018.csv")
-Chad_15 <- read.csv("./Chad_20211027.csv")
-Chad_16 <- read.csv("./Chad_20211110.csv")
-Chad_17 <- read.csv("./Chad_20211216.csv")
-#### 2022
-Chad_18 <- read.csv("./Chad_20220303.csv")
-Chad_19 <- read.csv("./Chad_20220426.csv")
-Chad_20 <- read.csv("./Chad_20220510.csv")
-Chad_21 <- read.csv("./Chad_20220517.csv")
-Chad_22 <- read.csv("./Chad_20220526.csv")
-Chad_23 <- read.csv("./Chad_20220609.csv")
-Chad_24 <- read.csv("./Chad_20220805.csv")
-#### 2023
-Chad_25 <- read.csv("./Chad_20230220.csv")
-Chad_26 <- read.csv("./Chad_20230414_revised.csv")
-Chad_26 = subset(Chad_26, select = -c(X, X.1,X.2, X.3, X.4))
-Chad_27 <- read.csv("./Chad_20230503_revised.csv")
-Chad_27 = subset(Chad_27, select = -c(X, X.1,X.2, X.3, X.4))
-Chad_28 <- read.csv("./Chad_20230512_revised.csv")
-Chad_29 <- read.csv("./Chad_20230609_revised.csv")
-Chad_30 <- read.csv("./Chad_20230821.csv")
-
-Chad <-rbind(Chad_1,Chad_2,Chad_3,Chad_4,Chad_5,Chad_6,Chad_7,Chad_8,Chad_9,Chad_10,Chad_11,Chad_12,Chad_13,Chad_14,Chad_15,Chad_16,Chad_17,Chad_18,Chad_19,Chad_20,Chad_21,Chad_22,Chad_23,Chad_24,Chad_25,Chad_26,Chad_27,Chad_28,Chad_29)
-
-mdy <- mdy(Chad$Date) 
-ymd <- ymd(Chad$Date) 
-mdy[is.na(mdy)] <- ymd[is.na(mdy)] # some dates are ambiguous, here we give 
-Chad$Date <- mdy        # mdy precedence over dmy
-
 #Set Working Directory to folder with all of the MOTUS tower data you want to work with.
 setwd("./Chad")
 #Create and object that lists all file names
@@ -131,12 +89,12 @@ Chad_errors %>%
   count()
   
 
-##Chad_11.csv = Chad_20210629.csv 4
-##Chad_20.csv = Chad_20220510.csv 891
-##Chad_21.csv = Chad_20220517.csv 2581
-##Chad_22.csv = Chad_20220526.csv 378
-##Chad_23.csv = Chad_20220609.csv 418
-##Chad_25.csv = Chad_20230220.csv 96094
+##Chad_20210629.csv 4
+##Chad_20220510.csv 891
+##Chad_20220517.csv 2581
+##Chad_20220526.csv 378
+##Chad_20220609.csv 418
+##Chad_20230220.csv 96094
 
 if(nrow(Chad) == 0){
   Chad_counts <- empty_data
