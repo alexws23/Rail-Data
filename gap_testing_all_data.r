@@ -1,0 +1,127 @@
+library(tidyverse)
+library(purrr)
+library(data.table)
+library(hms)
+library(visdat)
+library(rlist)
+#Chad testing
+#Set Working Directory to folder with all of the MOTUS tower data you want to work with.
+setwd("C:/Users/awsmilor/Git/Ward Lab/Rail-Data/Data/All_Data")
+#Create and object that lists all file names
+files <- list.files()
+names(files) = files
+#read in all CSV files with the names in the corresponding object
+csvs <- lapply(files, function(f) {
+  read_csv(f, col_types = cols(Date = col_character()))
+})
+
+#create column with original filename
+csvs <- lapply(names(csvs), function(name){
+  bind_cols(
+    data_frame(filename = rep(gsub('.csv','',name), nrow(csvs[[name]]))),
+    csvs[[name]])})
+
+#renames tibbles to their original filename
+names(csvs) <- files
+
+columns_to_remove <- c("X", "...") #create object with names of columns you want to remove
+cleaned_csvs <- map(csvs, ~ .x %>% select(-starts_with(columns_to_remove))) #remove all columns that match the specified cases. In this case, I removed all columns starting with "..." and "X"
+newcolnames <- c("filename","Date","Time","RXID","Freq","Antenna","Protocol","Code","Power","Squelch", "Noise Level","Pulse Width 1","Pulse Width 2","Pulse Width 3","Pulse Width 4","Pulse Interval 1", "Pulse Interval 2","Pulse Interval 3")
+cleaned_csvs <- lapply(cleaned_csvs, setNames, nm = newcolnames)
+
+target_class <- class(csvs[[32]]$Antenna)
+
+# Coerce the 'Antenna' column in all tibbles to that class
+cleaned_csvs <- lapply(cleaned_csvs, function(df) {
+  if (!inherits(df$Antenna, target_class)) {
+    # Use as.<class>() to convert, assuming the base type is compatible
+    df$Antenna <- switch(target_class[1],
+                      character = as.character(df$Antenna),
+                      df$Antenna)  # Default: no change
+  }
+  df
+})
+
+target_class_pro <- class(csvs[[1]]$Protocol)
+
+# Coerce the 'Antenna' column in all tibbles to that class
+cleaned_csvs <- lapply(cleaned_csvs, function(df) {
+  if (!inherits(df$Protocol, target_class_pro)) {
+    # Use as.<class>() to convert, assuming the base type is compatible
+    df$Protocol <- switch(target_class_pro[1],
+                         character = as.character(df$Protocol),
+                         df$Protocol)  # Default: no change
+  }
+  df
+})
+
+All_Data <- bind_rows(cleaned_csvs) #Create one df with all of the data
+
+Chad %>% 
+  slice_sample(prop = .006) %>% 
+  vis_dat()
+
+mdy <- mdy(All_Data$Date)
+ymd <- ymd(All_Data$Date) 
+mdy[is.na(mdy)] <- ymd[is.na(mdy)] # some dates are ambiguous, here we give 
+All_Data$Date <- mdy        # mdy precedence over dmy
+
+All_errors <- All_Data %>% 
+  subset(year(Date) == 2001) #subset the dataset to only include data from 2001, representing errors
+
+unique(All_errors$filename)
+All_errors %>% 
+  group_by(filename) %>% 
+  count()
+  
+
+##Chad_20210629.csv 4
+##Chad_20220510.csv 891
+##Chad_20220517.csv 2581
+##Chad_20220526.csv 378
+##Chad_20220609.csv 418
+##Chad_20230220.csv 96094
+
+if(nrow(Chad) == 0){
+  Chad_counts <- empty_data
+}else{
+  #Chad$date_2 <- as.Date(strptime (Chad$date_2, '%Y-%m-%d'))
+  counts <- aggregate(
+    count ~ wkday + hour,
+    data=transform(Chad,
+                   wkday=Date,
+                   hour=format(as.POSIXct(Time,format="%H:%M:%S"), "%H"),
+                   count=1),
+    FUN=sum
+  )
+  Chad_counts <- counts[order(counts$wkday),]
+  colnames(Chad_counts) <- c("Date","Hour","Chad_Count")}
+
+
+write.csv(Chad_counts, "Chad_counts_2.csv")
+View(Chad_counts)
+
+#Determine wrong years
+list <- list(Chad_1,Chad_2, Chad_3)
+
+mdy <- mdy(Chad$Date)
+ymd <- ymd(Chad$Date) 
+mdy[is.na(mdy)] <- ymd[is.na(mdy)] # some dates are ambiguous, here we give 
+Chad$Date <- mdy        # mdy precedence over dmy
+
+mdy <- mdy(Chad_1$Date)
+Chad_1$Date <- mdy
+
+mdy <- mdy(Chad_2$Date)
+Chad_2$Date <- mdy
+
+mdy <- mdy(Chad_3$Date)
+Chad_3$Date <- mdy
+
+Chad_1_Test <- Chad_1 %>%
+  subset(year(Date) == 2001)
+
+for (i in 1:nrow) {
+  
+}
+  
