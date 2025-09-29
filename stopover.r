@@ -28,6 +28,8 @@ good_rails <- rails %>%
   mutate(Date_Tagged = mdy(Date_Tagged)) %>% #format Date_Tagged variable as a date
   mutate(Date.Departed = mdy(Date.Departed)) #format Date.Departed variable as a date
 
+good_codes <- good_rails$Code
+
 good_rails <- good_rails %>% 
   mutate(diff = 1+(as.numeric(difftime(Date.Departed, Date_Tagged, units = "days")))) #Not needed, but this is how to calculate minimum stopover duration
 
@@ -60,12 +62,13 @@ suspect_records <- rail_unk_dep %>%
 #Filter all detections to only include the detections of birds with suspect codes.
 suspect_codes <- suspect_records$Code #create list object of suspect codes
 
-suspect_detections <- Chad %>%
-  filter(Code %in% suspect_codes)
+suspect_detections <- Chad
+  #filter(Code %in% suspect_codes)
 
 #Filter to only include records with the 2001 error
 search_2001 <- suspect_detections %>% 
-  filter(year(Date) == 2001)
+  filter(year(Date) == 2001) %>% 
+  filter(Code %ni% good_codes)
 
 #Print all of the codes affected by the 2001 error
 unique(search_2001$Code) #321 325 111 327 125 367 499
@@ -78,10 +81,10 @@ unique(search_2001$Code) #321 325 111 327 125 367 499
 ## 499: tag was moving until 8/12/21, then laid there?? (likely bred)
 
 All_Data %>% 
-  filter(Code == 111) %>% 
-  filter(year(Date) != 2001) %>% 
-  filter(year(Date) != 2012) %>% 
-  filter(year(Date) == 2022) %>% 
+  filter(Code == 33) %>% 
+  #filter(year(Date) == 2001) %>% 
+  #filter(year(Date) != 2012) %>% 
+  #filter(year(Date) == 2022) %>% 
   group_by(Date) %>%
   ggplot(aes(x = Date, y = Power, colour = filename)) + 
   geom_point()
