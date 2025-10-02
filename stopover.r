@@ -14,6 +14,8 @@ rails_fall <- read.csv("./Fall_Master_list_of_Tagged_Rails.csv") %>%
   subset(select = -c(Trap, Wing.Cord,Culmen, Tarsus,Mass))
 rails <- rbind(rails_spring,rails_fall)
 
+write.csv(rails, "rails.csv")
+
 #filter to only include rails with unknown departure dates whose tags didn't fall off
 rail_unk_dep <- rails %>% 
   filter(Date.Departed %in% c("","unk",NA)) %>% 
@@ -82,9 +84,9 @@ unique(search_2001$Code) #321 325 111 327 125 367 499
 
 All_Data %>% 
   filter(Code == 33) %>% 
-  #filter(year(Date) == 2001) %>% 
-  #filter(year(Date) != 2012) %>% 
-  #filter(year(Date) == 2022) %>% 
+  filter(year(Date) != 2001) %>% 
+  filter(year(Date) != 2012) %>% 
+  filter(year(Date) == 2022) %>% 
   group_by(Date) %>%
   ggplot(aes(x = Date, y = Power, colour = filename)) + 
   geom_point()

@@ -82,24 +82,24 @@ All_errors %>%
 ##Chad_20220609.csv 418
 ##Chad_20230220.csv 96094
 
-if(nrow(Chad) == 0){
-  Chad_counts <- empty_data
+if(nrow(All_Data) == 0){
+  all_counts <- empty_data
 }else{
   #Chad$date_2 <- as.Date(strptime (Chad$date_2, '%Y-%m-%d'))
   counts <- aggregate(
     count ~ wkday + hour,
-    data=transform(Chad,
+    data=transform(All_Data,
                    wkday=Date,
                    hour=format(as.POSIXct(Time,format="%H:%M:%S"), "%H"),
                    count=1),
     FUN=sum
   )
-  Chad_counts <- counts[order(counts$wkday),]
-  colnames(Chad_counts) <- c("Date","Hour","Chad_Count")}
+  all_counts <- counts[order(counts$wkday),]
+  colnames(all_counts) <- c("Date","Hour","all_Count")}
 
 
 write.csv(Chad_counts, "Chad_counts_2.csv")
-View(Chad_counts)
+View(all_counts)
 
 #Determine wrong years
 list <- list(Chad_1,Chad_2, Chad_3)
